@@ -78,7 +78,10 @@ class IMDbCrawler:
         except json.JSONDecodeError:
             print("IMDB_not_crawled.json is empty")
   
-        self.added_ids= None
+        for url in self.not_crawled:
+            self.added_ids.add(self.get_id_from_URL(url))
+        for movie in self.crawled:
+            self.added_ids.add(movie['id'])
 
     def crawl(self, URL):
         """
