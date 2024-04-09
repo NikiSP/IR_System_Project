@@ -166,18 +166,23 @@ class Evaluation:
         if not predicted or not predicted[0]:
             return list()
         
-        rel= np.ones((len(predicted), len(predicted[0]))) #?
+        rel= np.ones((len(predicted), len(predicted[0]))) 
         perfect_ranking_rel= np.ones((len(predicted), len(predicted[0])))
         
         for i in range(len(predicted)):
             DCGs= []
             IDCGs= []
             for j in range(len(predicted[i])):
-                DCGs.append(((2**(rel[i][j]))-1)/np.log2(j+2))
+                if predicted[i][j] in actual[i]:
+                    DCGs.append(((2**(rel[i][j]))-1)/np.log2(j+2))
+                else:
+                    DCGs.append(0)
                 IDCGs.append(((2**(perfect_ranking_rel[i][j]))-1)/np.log2(j+2))
                 
-            NDCGs.append(mean(DCGs)/mean(IDCGs))
-            
+            if IDCGs and mean(IDCGs)!=0: 
+                NDCGs.append(mean(DCGs)/mean(IDCGs))
+            else:
+                NDCGs.append(0)
         # TODO: Calculate DCG here
 
         return list(NDCGs)
@@ -359,6 +364,3 @@ class Evaluation:
         #call print and viualize functions
         self.print_evaluation(precision, recall, f1, ap, map_score, dcg, ndcg, rr, mrr)
         self.log_evaluation(precision, recall, f1, ap, map_score, dcg, ndcg, rr, mrr)
-
-
-
