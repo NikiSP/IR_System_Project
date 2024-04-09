@@ -1,0 +1,53 @@
+{
+    "os": "Windows-10-10.0.19045-SP0",
+    "python": "3.10.7",
+    "heartbeatAt": "2024-04-09T01:55:07.860889",
+    "startedAt": "2024-04-09T01:55:04.625330",
+    "docker": null,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "c:\\Users\\FasleJadid\\Desktop\\IRProject\\IR_System_Project\\Logic\\core\\utility\\evaluation.py",
+    "codePathLocal": "Logic\\core\\utility\\evaluation.py",
+    "codePath": "Logic\\core\\utility\\evaluation.py",
+    "git": {
+        "remote": "https://github.com/NikiSP/IR_System_Project.git",
+        "commit": "58b773034f01143446e1833d4be64ea4a6081ca6"
+    },
+    "email": "sepasian.niki@gmail.com",
+    "root": "C:/Users/FasleJadid/Desktop/IRProject/IR_System_Project",
+    "host": "DESKTOP-TKP11SS",
+    "username": "FasleJadid",
+    "executable": "C:\\Users\\FasleJadid\\AppData\\Local\\Programs\\Python\\Python310\\python.exe",
+    "cpu_count": 6,
+    "cpu_count_logical": 12,
+    "cpu_freq": {
+        "current": 2592.0,
+        "min": 0.0,
+        "max": 2592.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 2592.0,
+            "min": 0.0,
+            "max": 2592.0
+        }
+    ],
+    "disk": {
+        "/": {
+            "total": 184.94628524780273,
+            "used": 122.83881759643555
+        }
+    },
+    "gpu": "GeForce GTX 1650",
+    "gpu_count": 1,
+    "gpu_devices": [
+        {
+            "name": "GeForce GTX 1650",
+            "memory_total": 4294967296
+        }
+    ],
+    "memory": {
+        "total": 15.846302032470703
+    }
+}

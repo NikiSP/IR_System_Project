@@ -1,3 +1,7 @@
-        with open('IMDB_not_crawled.json', 'w') as f:
-            with self.add_list_lock:
-                self.not_crawled = list(json.load(f))
+h_matrix= np.zeros([len(self.all_shingles), len(self.documents)])
+        # for i, shingle in enumerate(self.all_shingles):
+        #     for j, doc in enumerate(self.documents):
+        #         if shingle in doc:
+        #             ch_matrix[i, j]= 1
+        
+        # return ch_matrix 
