@@ -3,10 +3,15 @@ import numpy as np
 import sys
 sys.path.append("../Logic/core/")
 
-from preprocess import Preprocessor
-from scorer import Scorer
-from indexer.indexes_enum import Indexes, Index_types
-from indexer.index_reader import Index_reader
+# from .utility.preprocess import Preprocessor
+# from .utility.scorer import Scorer
+# from .indexer.indexes_enum import Index_types, Indexes
+# from .indexer.index_reader import  Index_reader
+
+from utility.preprocess import Preprocessor
+from utility.scorer import Scorer
+from indexer.indexes_enum import Index_types, Indexes
+from indexer.index_reader import  Index_reader
 
 
 class SearchEngine:
@@ -36,7 +41,7 @@ class SearchEngine:
         self.num_of_documents= len(self.document_indexes[Indexes.DOCUMENTS.value].keys())
         
 
-    def search(self, query, method, weights, safe_ranking, max_results=10):
+    def search(self, query, method, weights, safe_ranking,  smoothing_method, max_results=10, alpha= 0.5, lamda= 0.5):
         """
         searches for the query in the indexes.
 
@@ -44,15 +49,22 @@ class SearchEngine:
         ----------
         query : str
             The query to search for.
-        method : str ((n|l)(n|t)(n|c).(n|l)(n|t)(n|c)) | OkapiBM25
+        method : str ((n|l)(n|t)(n|c).(n|l)(n|t)(n|c)) | OkapiBM25 | Unigram
             The method to use for searching.
         weights: dict
             The weights of the fields.
         safe_ranking : bool
-            If True, the search engine will search in whole index and then rank the results. 
+            If True, the search engine will search in whole index and then rank the results.
             If False, the search engine will search in tiered index.
         max_results : int
             The maximum number of results to return. If None, all results are returned.
+        smoothing_method : str (bayes | naive | mixture)
+            The method used for smoothing the probabilities in the unigram model.
+        alpha : float, optional
+            The parameter used in bayesian smoothing method. Defaults to 0.5.
+        lamda : float, optional
+            The parameter used in some smoothing methods to balance between the document
+            probability and the collection probability. Defaults to 0.5.
 
         Returns
         -------
@@ -64,7 +76,11 @@ class SearchEngine:
         query = preprocessor.preprocess()[0].split()
 
         scores = {}
-        if safe_ranking:
+        if method == "unigram":
+            self.find_scores_with_unigram_model(
+                query, smoothing_method, weights, scores, alpha, lamda
+            )
+        elif safe_ranking:
             self.find_scores_with_safe_ranking(query, method, weights, scores)
         else:
             self.find_scores_with_unsafe_ranking(query, method, weights, max_results, scores)
@@ -93,7 +109,7 @@ class SearchEngine:
             The final scores of the documents.
         """
         
-        # TODO
+    
       
         for field in weights:
             if field in scores:
@@ -182,9 +198,8 @@ class SearchEngine:
         scores : dict
             The scores of the documents.
         """
-        
+
         for field in weights.keys():
-            #TODO
             # field= None
             # if field_s=='stars':
             #     field= Indexes.STARS
@@ -200,6 +215,34 @@ class SearchEngine:
             else:
                 scores[field]= scorer.compute_scores_with_vector_space_model(query, method)    
        
+
+
+
+    def find_scores_with_unigram_model(self, query, smoothing_method, weights, scores, alpha, lamda):
+        """
+        Calculates the scores for each document based on the unigram model.
+
+        Parameters
+        ----------
+        query : str
+            The query to search for.
+        smoothing_method : str (bayes | naive | mixture)
+            The method used for smoothing the probabilities in the unigram model.
+        weights : dict
+            A dictionary mapping each field (e.g., 'stars', 'genres', 'summaries') to its weight in the final score. Fields with a weight of 0 are ignored.
+        scores : dict
+            The scores of the documents.
+        alpha : float, optional
+            The parameter used in bayesian smoothing method. Defaults to 0.5.
+        lamda : float, optional
+            The parameter used in some smoothing methods to balance between the document
+            probability and the collection probability. Defaults to 0.5.
+        """
+
+        for field in weights.keys():
+            scorer= Scorer(self.document_indexes[field], self.num_of_documents)
+            scores[field]= {}
+            scores[field]= scorer.compute_scores_with_unigram_model(query, smoothing_method, self.document_lengths_index[field], alpha, lamda) 
 
 
     def merge_scores(self, scores1, scores2):
@@ -232,20 +275,20 @@ class SearchEngine:
         
         return merged_dict
                 
-        #TODO
+
 
 
 if __name__ == '__main__':
     search_engine = SearchEngine()
     query = "spiderman"
-    method = "OkapiBM25"
+    method = "unigram"
     weights = {
         Indexes.STARS.value: 1,
         Indexes.GENRES.value: 1,
         Indexes.SUMMARIES.value: 1
     }
-    result = search_engine.search(query, method, weights, False)
-    print(weights)
-    print(result)
+    smoothing_method= 'bayes'
+    result = search_engine.search(query, method, weights, True, smoothing_method)
+    
     for res in result:
-        print(search_engine.document_indexes[Indexes.DOCUMENTS.value][res[0]]['title'])
+        print(search_engine.document_indexes[Indexes.DOCUMENTS.value][res[0]]['title'], res[1])

@@ -19,7 +19,7 @@ class Preprocessor:
         """
         nltk.download('punkt')
         nltk.download('wordnet')
-        with open("Logic/core/stopwords.txt", 'r') as file:
+        with open("Logic/core/utility/stopwords.txt", 'r') as file:
             self.stopwords= [line.strip() for line in file]
         
         # nltk.download('stopwords')

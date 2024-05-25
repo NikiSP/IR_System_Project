@@ -2,13 +2,11 @@ from typing import Dict, List
 import sys
 import os
 sys.path.append("../")
-import Logic.core.indexes_enum
-
-from Logic.core.search import SearchEngine
-from Logic.core.spell_correction import SpellCorrection
-from Logic.core.snippet import Snippet
-from Logic.core.indexes_enum import Indexes, Index_types
-from Logic.core.index_reader import Index_reader
+from .core.search import SearchEngine
+from .core.utility.spell_correction import SpellCorrection
+from .core.utility.snippet import Snippet
+from .core.indexer.indexes_enum import Indexes, Index_types
+from .core.indexer.index_reader import Index_reader
 import json
 
 with open('C:/Users/FasleJadid/Desktop/IRProject/IR_System_Project/IMDB_crawled.json', 'r') as f:
@@ -51,15 +49,22 @@ def search(
     weights: dict,
     method: str,
     ranking_type, 
+    unigram_smoothing,
+    alpha, 
+    lamda,
     should_print=False,
     preferred_genre: str = None,
 ):
+        
 
     """
     Finds relevant documents to query
 
     Parameters
     ---------------------------------------------------------------------------------------------------
+    query:
+        The query text
+
     max_result_count: Return top 'max_result_count' docs which have the highest scores.
                       notice that if max_result_count = -1, then you have to return all docs
 
@@ -71,7 +76,15 @@ def search(
 
     method: 'ltn.lnn' or 'ltc.lnc' or 'OkapiBM25'
 
-    preferred_genre: A list containing preference rates for each genre. If None, the preference rates are equal.
+    weights:
+        The list, containing importance weights in the search result for each of these items:
+            Indexes.STARS: weights[0],
+            Indexes.GENRES: weights[1],
+            Indexes.SUMMARIES: weights[2],
+
+    preferred_genre:
+        A list containing preference rates for each genre. If None, the preference rates are equal.
+        (You can leave it None for now)
 
     Returns
     ----------------------------------------------------------------------------------------------------
@@ -84,7 +97,7 @@ def search(
     #     "summaries": 1
     # }
     return search_engine.search(
-        query, method, weights, max_results=max_result_count, safe_ranking=ranking_type
+        query, method, weights, max_results=max_result_count, safe_ranking=ranking_type, smoothing_method=unigram_smoothing
     )
 
 
@@ -105,6 +118,7 @@ def get_movie_by_id(id: str, movies_dataset: List[Dict[str, str]]) -> Dict[str, 
     dict
         The movie with the given id
     """
+    
     result = movies_dataset.get(
         id,
         {

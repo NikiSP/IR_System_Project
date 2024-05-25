@@ -1,5 +1,5 @@
-from index_reader import Index_reader
-from indexes_enum import Indexes, Index_types
+from .index_reader import Index_reader
+from .indexes_enum import Indexes, Index_types
 import json
 import document_lengths_index
 from statistics import mean 
@@ -15,7 +15,7 @@ class Metadata_index:
             The path to the indexes.
         """
         
-        #TODO
+        
         self.path= path
         self.documents= self.read_documents()
         self.indexes = {
@@ -34,7 +34,7 @@ class Metadata_index:
         Reads the documents.
         
         """
-        #TODO
+ 
         return Index_reader(self.path, index_name=Indexes.DOCUMENTS, index_type=None).index
     
     def create_metadata_index(self):    
@@ -63,7 +63,7 @@ class Metadata_index:
         """
         
         
-        #TODO
+       
         # len_sum= []
         # for length in self.indexes[where].values():
         #     len_sum.append(int(length))
@@ -72,10 +72,10 @@ class Metadata_index:
         for doc in self.documents.values():
             if doc[where]:
                 for section in doc[where]:
-                    if where=='stars':
-                        print(len(doc[where]))
-                        print(section)
-                        print(len(section))
+                    # if where=='stars':
+                    #     print(len(doc[where]))
+                    #     print(section)
+                    #     print(len(section))
                     len_sum+= (len(section.split()))
                 
         

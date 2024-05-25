@@ -2,7 +2,7 @@ import time
 import os
 import json
 import copy
-from indexes_enum import Indexes
+from .indexes_enum import Indexes
 from preprocess import Preprocessor
 
 class Index:
@@ -35,8 +35,7 @@ class Index:
     #     List[str]
     #         The preprocessed documents.
     #     """
-    #      # TODO
-        
+    #      # 
     #     for doc in self.preprocessed_documents:
     #         for field in doc:
     #             if isinstance(doc[field], str):
@@ -91,7 +90,7 @@ class Index:
         dict
             The index of the documents based on the document ID.
         """
-        # TODO
+
         current_index = {}
         for doc in self.preprocessed_documents:
             current_index[doc['id']]= doc 
@@ -110,7 +109,7 @@ class Index:
             So the index type is: {term: {document_id: tf}}
         """
 
-        #         TODO
+    
 
         star_index= {}
         seen_names= set()
@@ -119,14 +118,15 @@ class Index:
             stars= doc['stars']
             # names= [star.split() for star in stars]
             # words= [name for name in names.split()]
-            for star in stars:
-                for name in star.split():
-                    if name not in seen_names:
-                        seen_names.add(name)
-                        star_index[name]= {}
-                        star_index[name][doc['id']]= ' '.join(stars).count(name) #self.get_tf(doc, star)
-                    else:  
-                        star_index[name][doc['id']]= ' '.join(stars).count(name) #self.get_tf(doc, star)
+            if stars:
+                for star in stars:
+                    for name in star.split():
+                        if name not in seen_names:
+                            seen_names.add(name)
+                            star_index[name]= {}
+                            star_index[name][doc['id']]= ' '.join(stars).count(name) #self.get_tf(doc, star)
+                        else:  
+                            star_index[name][doc['id']]= ' '.join(stars).count(name) #self.get_tf(doc, star)
         return star_index
 
     def index_genres(self):
@@ -140,20 +140,20 @@ class Index:
             So the index type is: {term: {document_id: tf}}
         """
 
-        #         TODO
         
         genre_index= {}
         seen_genres= set()
         
         for doc in self.preprocessed_documents:
             genres= doc['genres']
-            for genre in genres:
-                if genre not in seen_genres:
-                    seen_genres.add(genre)
-                    genre_index[genre]= {}
-                    genre_index[genre][doc['id']]= 1#self.get_tf(doc, genre)
-                else:
-                    genre_index[genre][doc['id']]= 1 #self.get_tf(doc, genre)
+            if genres:
+                for genre in genres:
+                    if genre not in seen_genres:
+                        seen_genres.add(genre)
+                        genre_index[genre]= {}
+                        genre_index[genre][doc['id']]= 1#self.get_tf(doc, genre)
+                    else:
+                        genre_index[genre][doc['id']]= 1 #self.get_tf(doc, genre)
 
         return genre_index
     
@@ -168,8 +168,7 @@ class Index:
             So the index type is: {term: {document_id: tf}}
         """
 
-        
-        #         TODO
+
         summary_index= {}
         seen_terms= set()
         
@@ -255,7 +254,6 @@ class Index:
             Document to add to all the indexes
         """
 
-        #         TODO
 
         self.index['documents'][document['id']]= document
         
@@ -347,7 +345,7 @@ class Index:
             print('Add is incorrect, tim')
             return
 
-        # TODO
+
         if (set(index_after_add[Indexes.STARS.value]['henry']).difference(set(index_before_add[Indexes.STARS.value]['henry']))
                 != {dummy_document['id']}):
             print('Add is incorrect, henry')
@@ -398,7 +396,6 @@ class Index:
             raise ValueError('Invalid index name')
         
         
-        # TODO
         
         with open(os.path.join(path, index_name+'_index.json'), 'w') as f:
             json.dump((self.index[index_name]), f)
@@ -414,7 +411,6 @@ class Index:
             Path to load the file
         """
 
-        #         TODO
        
         with open(path+'_index.json', 'r') as f:
             return (json.load(f)) 
@@ -506,7 +502,7 @@ class Index:
             print('Indexing is wrong')
             return False
 
-# TODO: Run the class with needed parameters, then run check methods and finally report the results of check methods
+#  Run the class with needed parameters, then run check methods and finally report the results of check methods
 
 # with open('C:/Users/FasleJadid/Desktop/IRProject/IR_System_Project/IMDB_crawled.json', 'r') as f:
 #     documents= json.load(f)
@@ -516,11 +512,11 @@ class Index:
 
 # with open('preprocessed_documents.json', 'w') as f:
 #     json.dump(list(processed_docs), f)
-# with open('preprocessed_documents.json', 'r') as f:
-#     processed_documents= json.load(f)
-
-with open('IMDB_crawled.json', 'r') as f:
+with open('preprocessed_documents.json', 'r') as f:
     processed_documents= json.load(f)
+
+# with open('IMDB_crawled.json', 'r') as f:
+#     processed_documents= json.load(f)
  
 created_index= Index(processed_documents)
 # created_index.check_if_index_loaded_correctly('documents', created_index.load_index('C:/Users/FasleJadid/Desktop/IRProject/IR_System_Project/Logic/core/indexer/index/documents'))
@@ -530,12 +526,12 @@ created_index= Index(processed_documents)
 
 # created_index.check_add_remove_is_correct()
 
-created_index.check_if_indexing_is_good('stars')
-created_index.check_if_indexing_is_good('genres')
-created_index.check_if_indexing_is_good('summaries')
+# created_index.check_if_indexing_is_good('stars')
+# created_index.check_if_indexing_is_good('genres')
+# created_index.check_if_indexing_is_good('summaries')
 
-# created_index.store_index('C:/Users/FasleJadid/Desktop/IRProject/IR_System_Project/Logic/core/indexer/index/', 'documents')
-# created_index.store_index('C:/Users/FasleJadid/Desktop/IRProject/IR_System_Project/Logic/core/indexer/index/', 'stars')
-# created_index.store_index('C:/Users/FasleJadid/Desktop/IRProject/IR_System_Project/Logic/core/indexer/index/', 'genres')
-# created_index.store_index('C:/Users/FasleJadid/Desktop/IRProject/IR_System_Project/Logic/core/indexer/index/', 'summaries')
-# created_index.store_index('C:/Users/FasleJadid/Desktop/IRProject/IR_System_Project/Logic/core/indexer/index/', 'docterms')
+created_index.store_index('C:/Users/FasleJadid/Desktop/IRProject/IR_System_Project/Logic/core/indexer/index/', 'documents')
+created_index.store_index('C:/Users/FasleJadid/Desktop/IRProject/IR_System_Project/Logic/core/indexer/index/', 'stars')
+created_index.store_index('C:/Users/FasleJadid/Desktop/IRProject/IR_System_Project/Logic/core/indexer/index/', 'genres')
+created_index.store_index('C:/Users/FasleJadid/Desktop/IRProject/IR_System_Project/Logic/core/indexer/index/', 'summaries')
+created_index.store_index('C:/Users/FasleJadid/Desktop/IRProject/IR_System_Project/Logic/core/indexer/index/', 'docterms')

@@ -1,12 +1,20 @@
 import streamlit as st
 import sys
+import os
 sys.path.append("../")
+
+
+current= os.path.join(os.path.dirname(__file__), '..\\Logic')
+sys.path.append(os.path.dirname(os.path.abspath(current)))
+
 from Logic import utils
+from Logic.utils import *
 import time
 from enum import Enum
 import random
-from Logic.core.snippet import Snippet
-from Logic.core.indexes_enum import Indexes
+from Logic.core.utility.snippet import Snippet
+from Logic.core.link_analysis.analyzer import LinkAnalyzer
+from Logic.core.indexer.index_reader import Index_reader, Indexes
 
 snippet_obj = Snippet(
     number_of_words_on_each_side=5
@@ -21,6 +29,30 @@ class color(Enum):
     WHITE = "#FFFFFF"
     CYAN = "#00FFFF"
     MAGENTA = "#FF00FF"
+
+
+def get_top_x_movies_by_rank(x: int, results: list):
+    path = "C:/Users/FasleJadid/Desktop/IRProject/IR_System_Project/Logic/core/indexer/index/"  # Link to the index folder
+    document_index = Index_reader(path, Indexes.DOCUMENTS, None)
+    corpus = []
+    root_set = []
+    for movie_id, movie_detail in document_index.index.items():
+        movie_title = movie_detail["title"]
+        stars = movie_detail["stars"]
+        corpus.append({"id": movie_id, "title": movie_title, "stars": stars})
+
+    for element in results:
+        movie_id = element[0]
+        movie_detail = document_index.index[movie_id]
+        movie_title = movie_detail["title"]
+        stars = movie_detail["stars"] if movie_detail['stars'] else ['']
+        root_set.append({"id": movie_id, "title": movie_title, "stars": stars})
+    
+    
+    analyzer = LinkAnalyzer(root_set=root_set)
+    analyzer.expand_graph(corpus=corpus)
+    actors, movies = analyzer.hits(max_result=x)
+    return actors, movies
 
 
 def get_summary_with_snippet(movie_info, query):
@@ -50,8 +82,69 @@ def search_handling(
     search_max_num,
     search_weights,
     search_method,
-    ranking_type
+    ranking_type,
+    unigram_smoothing,
+    alpha,
+    lamda,
+    filter_button,
+    num_filter_results,
 ):
+    if filter_button:
+        if "search_results" in st.session_state:
+            top_actors, top_movies = get_top_x_movies_by_rank(
+                num_filter_results, st.session_state["search_results"]
+            )
+            st.markdown(f"**Top {num_filter_results} Actors:**")
+            actors_ = ", ".join(top_actors)
+            st.markdown(
+                f"<span style='color:{random.choice(list(color)).value}'>{actors_}</span>",
+                unsafe_allow_html=True,
+            )
+            st.divider()
+
+        st.markdown(f"**Top {num_filter_results} Movies:**")
+        for i in range(len(top_movies)):
+            card = st.columns([3, 1])
+            info = utils.get_movie_by_id(top_movies[i], utils.movies_dataset)
+            with card[0].container():
+                st.title(info["title"])
+                st.markdown(f"[Link to movie]({info['URL']})")
+                st.markdown(
+                    f"<b><font size = '4'>Summary:</font></b> {get_summary_with_snippet(info, search_term)}",
+                    unsafe_allow_html=True,
+                )
+
+            with st.container():
+                st.markdown("**Directors:**")
+                if info['directors']:
+                    num_authors = len(info["directors"])
+                    for j in range(num_authors):
+                        st.text(info["directors"][j])
+
+            with st.container():
+                st.markdown("**Stars:**")
+                if info['stars']:
+                    num_authors = len(info["stars"])
+                    stars = "".join(star + ", " for star in info["stars"])
+                    st.text(stars[:-2])
+
+                topic_card = st.columns(1)
+                with topic_card[0].container():
+                    st.write("Genres:")
+                    if info['genres']:
+                        num_topics = len(info["genres"])
+                        for j in range(num_topics):
+                            st.markdown(
+                                f"<span style='color:{random.choice(list(color)).value}'>{info['genres'][j]}</span>",
+                                unsafe_allow_html=True,
+                            )
+            with card[1].container():
+                if info['Image_URL']:
+                    st.image(info["Image_URL"], use_column_width=True)
+
+            st.divider()
+        return
+
     if search_button:
         corrected_query = utils.correct_text(search_term, utils.movies_dataset)
 
@@ -71,8 +164,13 @@ def search_handling(
                 search_max_num,
                 search_weights,
                 search_method,
-                ranking_type
+                ranking_type,
+                unigram_smoothing=unigram_smoothing,
+                alpha=alpha,
+                lamda=lamda,
             )
+            if "search_results" in st.session_state:
+                st.session_state["search_results"] = result
             print(f"Result: {result}")
             end_time = time.time()
             if len(result) == 0:
@@ -95,29 +193,40 @@ def search_handling(
 
                 with st.container():
                     st.markdown("**Directors:**")
-                    num_authors = len(info["directors"])
-                    for j in range(num_authors):
-                        st.text(info["directors"][j])
+                    if info['directors']:
+                        num_authors = len(info["directors"])
+                        for j in range(num_authors):
+                            st.text(info["directors"][j])
 
                 with st.container():
                     st.markdown("**Stars:**")
-                    num_authors = len(info["stars"])
-                    stars = "".join(star + ", " for star in info["stars"])
-                    st.text(stars[:-2])
+                    if info['stars']:
+                        num_authors = len(info["stars"])
+                        stars = "".join(star + ", " for star in info["stars"])
+                        st.text(stars[:-2])
 
                     topic_card = st.columns(1)
                     with topic_card[0].container():
                         st.write("Genres:")
-                        num_topics = len(info["genres"])
-                        for j in range(num_topics):
-                            st.markdown(
-                                f"<span style='color:{random.choice(list(color)).value}'>{info['genres'][j]}</span>",
-                                unsafe_allow_html=True,
-                            )
+                        if info['genres']:
+                            num_topics = len(info["genres"])
+                            for j in range(num_topics):
+                                st.markdown(
+                                    f"<span style='color:{random.choice(list(color)).value}'>{info['genres'][j]}</span>",
+                                    unsafe_allow_html=True,
+                                )
                 with card[1].container():
-                    st.image(info["Image_URL"], use_column_width=True)
+                    if info['Image_URL']:
+                        st.image(info["Image_URL"], use_column_width=True)
 
                 st.divider()
+
+        st.session_state["search_results"] = result
+        if "filter_state" in st.session_state:
+            st.session_state["filter_state"] = (
+                "search_results" in st.session_state
+                and len(st.session_state["search_results"]) > 0
+            )
 
 
 def main():
@@ -159,12 +268,11 @@ def main():
             value=1.0,
             step=0.1,
         )
-        
+        slider_ = st.slider("Select the number of top movies to show", 1, 10, 5)
         search_weights = {'stars': weight_stars, 'genres': weight_genres,'summaries': weight_summary}
         # search_weights = {Indexes.STARS: weight_stars, Indexes.GENRES: weight_genres, Indexes.SUMMARIES: weight_summary}
         search_method = st.selectbox(
-            "Search method",
-            ("ltn.lnn", "ltc.lnc", "OkapiBM25"),
+            "Search method", ("ltn.lnn", "ltc.lnc", "OkapiBM25", "unigram")
         )
 
         ranking_type= st.selectbox(
@@ -172,7 +280,42 @@ def main():
             ("safe", "non-safe"),
         )
         
+        unigram_smoothing = None
+        alpha, lamda = None, None
+        if search_method == "unigram":
+            unigram_smoothing = st.selectbox(
+                "Smoothing method",
+                ("naive", "bayes", "mixture"),
+            )
+            if unigram_smoothing == "bayes":
+                alpha = st.slider(
+                    "Alpha",
+                    min_value=0.0,
+                    max_value=1.0,
+                    value=0.5,
+                    step=0.1,
+                )
+            if unigram_smoothing == "mixture":
+                alpha = st.slider(
+                    "Alpha",
+                    min_value=0.0,
+                    max_value=1.0,
+                    value=0.5,
+                    step=0.1,
+                )
+                lamda = st.slider(
+                    "Lambda",
+                    min_value=0.0,
+                    max_value=1.0,
+                    value=0.5,
+                    step=0.1,
+                )
+
+    if "search_results" not in st.session_state:
+        st.session_state["search_results"] = []
+
     search_button = st.button("Search!")
+    filter_button = st.button("Filter movies by ranking")
 
     search_handling(
         search_button,
@@ -180,7 +323,12 @@ def main():
         search_max_num,
         search_weights,
         search_method,
-        ranking_type
+        ranking_type,
+        unigram_smoothing,
+        alpha,
+        lamda,
+        filter_button,
+        slider_,
     )
 
 

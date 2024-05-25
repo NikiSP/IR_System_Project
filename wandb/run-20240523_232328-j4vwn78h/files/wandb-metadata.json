@@ -1,0 +1,53 @@
+{
+    "os": "Windows-10-10.0.19045-SP0",
+    "python": "3.10.7",
+    "heartbeatAt": "2024-05-23T19:53:42.630249",
+    "startedAt": "2024-05-23T19:53:28.816609",
+    "docker": null,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "c:\\Users\\FasleJadid\\Desktop\\IRProject\\IR_System_Project\\Logic\\core\\clustering\\main.py",
+    "codePathLocal": "Logic\\core\\clustering\\main.py",
+    "codePath": "Logic\\core\\clustering\\main.py",
+    "git": {
+        "remote": "https://github.com/NikiSP/IR_System_Project.git",
+        "commit": "ec9c14a976541804028294a554d97482b6c43796"
+    },
+    "email": "sepasian.niki@gmail.com",
+    "root": "C:/Users/FasleJadid/Desktop/IRProject/IR_System_Project",
+    "host": "DESKTOP-TKP11SS",
+    "username": "FasleJadid",
+    "executable": "C:\\Users\\FasleJadid\\AppData\\Local\\Programs\\Python\\Python310\\python.exe",
+    "cpu_count": 6,
+    "cpu_count_logical": 12,
+    "cpu_freq": {
+        "current": 2592.0,
+        "min": 0.0,
+        "max": 2592.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 2592.0,
+            "min": 0.0,
+            "max": 2592.0
+        }
+    ],
+    "disk": {
+        "/": {
+            "total": 184.94628524780273,
+            "used": 137.1577262878418
+        }
+    },
+    "gpu": "GeForce GTX 1650",
+    "gpu_count": 1,
+    "gpu_devices": [
+        {
+            "name": "GeForce GTX 1650",
+            "memory_total": 4294967296
+        }
+    ],
+    "memory": {
+        "total": 15.846302032470703
+    }
+}
