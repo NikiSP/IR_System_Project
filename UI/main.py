@@ -1,6 +1,9 @@
 import streamlit as st
 import sys
 import os
+from datetime import datetime, timedelta
+
+
 sys.path.append("../")
 
 
@@ -77,6 +80,7 @@ def search_time(start, end):
 
 
 def search_handling(
+    search_year,
     search_button,
     search_term,
     search_max_num,
@@ -89,6 +93,7 @@ def search_handling(
     filter_button,
     num_filter_results,
 ):
+    
     if filter_button:
         if "search_results" in st.session_state:
             top_actors, top_movies = get_top_x_movies_by_rank(
@@ -156,10 +161,22 @@ def search_handling(
             time.sleep(0.5)  # for showing the spinner! (can be removed)
             start_time = time.time()
             if ranking_type=='safe':
+                if search_year=='Free':
+                    indx= None
+                else:
+                    year= int(search_year[0:4])
+                    cent= int(year/1000)
+                    dec= int((year%100)/10)
+                    indx= ((cent-1)*10) + dec 
+                
                 ranking_type=True
             else:
                 ranking_type= False
+                indx= None
+            # print(indx)
+            
             result = utils.search(
+                indx,
                 search_term,
                 search_max_num,
                 search_weights,
@@ -190,6 +207,7 @@ def search_handling(
                         f"<b><font size = '4'>Summary:</font></b> {get_summary_with_snippet(info, search_term)}",
                         unsafe_allow_html=True,
                     )
+                
 
                 with st.container():
                     st.markdown("**Directors:**")
@@ -238,13 +256,34 @@ def main():
         '<span style="color:yellow">Developed By: MIR Team at Sharif University</span>',
         unsafe_allow_html=True,
     )
+    
+    # Add background image CSS
+    current_dir = os.path.dirname(__file__)
+    image_path = os.path.join(current_dir, )  # Replace with your image file name
+    image_url = f'{image_path}'
+    
+    st.markdown(
+        f"""
+        <style>
+        body {{
+            background-image: url('{image_url}');
+            background-size: cover;
+            background-repeat: no-repeat;
+            }}
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
 
-    search_term = st.text_input("Seacrh Term")
+
+    search_term = st.text_input("Search Term")
     # search_summary_terms = st.text_input("Search in summary of movie")
     with st.expander("Advanced Search"):
         search_max_num = st.number_input(
             "Maximum number of results", min_value=5, max_value=100, value=10, step=5
         )
+
+
         weight_stars = st.slider(
             "Weight of stars in search",
             min_value=0.0,
@@ -275,6 +314,10 @@ def main():
             "Search method", ("ltn.lnn", "ltc.lnc", "OkapiBM25", "unigram")
         )
 
+        search_year = st.selectbox(
+            "year_interval_to_search_for", ("Free", "1900-1910", "1910-1920", "1920-1930", "1930-1940", "1940-1950", "1950-1960", "1960-1970", "1970-1980", "1980-1990", "1990-2000", "2000-2010", "2010-2020", "2020+")
+        )
+        
         ranking_type= st.selectbox(
             "ranking_method",
             ("safe", "non-safe"),
@@ -318,6 +361,7 @@ def main():
     filter_button = st.button("Filter movies by ranking")
 
     search_handling(
+        search_year,
         search_button,
         search_term,
         search_max_num,
