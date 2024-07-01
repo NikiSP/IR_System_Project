@@ -19,6 +19,7 @@ class Index:
             Indexes.GENRES.value: self.index_genres(),
             Indexes.SUMMARIES.value: self.index_summaries(),
             Indexes.DOCTERMS.value: [],
+            Indexes.YEAR.value: self.index_year(),
         }
         self.index['docterms'].extend([key.lower() for key in self.index['stars'].keys()])
         self.index['docterms'].extend([key.lower() for key in self.index['genres'].keys()])
@@ -79,6 +80,24 @@ class Index:
                                 tf+= string_val.count(term)
         return tf
         
+    def index_year(self):
+        """
+        Index the documents based on the document ID. In other words, create a dictionary
+        where the key is the document ID and the value is the document.
+
+        Returns
+        ----------
+        dict
+            The index of the documents based on the document ID.
+        """
+
+        current_index = {}
+        for doc in self.preprocessed_documents:
+            if 'release_year' in doc:
+                current_index[doc['id']]= doc['release_year'] 
+
+        return current_index
+
 
     def index_documents(self):
         """
@@ -530,8 +549,9 @@ created_index= Index(processed_documents)
 # created_index.check_if_indexing_is_good('genres')
 # created_index.check_if_indexing_is_good('summaries')
 
-created_index.store_index('C:/Users/FasleJadid/Desktop/IRProject/IR_System_Project/Logic/core/indexer/index/', 'documents')
-created_index.store_index('C:/Users/FasleJadid/Desktop/IRProject/IR_System_Project/Logic/core/indexer/index/', 'stars')
-created_index.store_index('C:/Users/FasleJadid/Desktop/IRProject/IR_System_Project/Logic/core/indexer/index/', 'genres')
-created_index.store_index('C:/Users/FasleJadid/Desktop/IRProject/IR_System_Project/Logic/core/indexer/index/', 'summaries')
-created_index.store_index('C:/Users/FasleJadid/Desktop/IRProject/IR_System_Project/Logic/core/indexer/index/', 'docterms')
+# created_index.store_index('C:/Users/FasleJadid/Desktop/IRProject/IR_System_Project/Logic/core/indexer/index/', 'documents')
+# created_index.store_index('C:/Users/FasleJadid/Desktop/IRProject/IR_System_Project/Logic/core/indexer/index/', 'stars')
+# created_index.store_index('C:/Users/FasleJadid/Desktop/IRProject/IR_System_Project/Logic/core/indexer/index/', 'genres')
+# created_index.store_index('C:/Users/FasleJadid/Desktop/IRProject/IR_System_Project/Logic/core/indexer/index/', 'summaries')
+# created_index.store_index('C:/Users/FasleJadid/Desktop/IRProject/IR_System_Project/Logic/core/indexer/index/', 'docterms')
+created_index.store_index('C:/Users/FasleJadid/Desktop/IRProject/IR_System_Project/Logic/core/indexer/index/', 'year')
