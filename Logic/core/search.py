@@ -32,6 +32,11 @@ class SearchEngine:
             Indexes.GENRES.value: Index_reader(path, Indexes.GENRES, Index_types.TIERED).index,
             Indexes.SUMMARIES.value: Index_reader(path, Indexes.SUMMARIES, Index_types.TIERED).index
         }
+        self.tiered_by_year_index= {
+            Indexes.STARS.value: Index_reader(path, Indexes.STARS, Index_types.YEAR).index,
+            Indexes.GENRES.value: Index_reader(path, Indexes.GENRES, Index_types.YEAR).index,
+            Indexes.SUMMARIES.value: Index_reader(path, Indexes.SUMMARIES, Index_types.YEAR).index
+        }
         self.document_lengths_index = {
             Indexes.STARS.value: Index_reader(path, Indexes.STARS, Index_types.DOCUMENT_LENGTH).index,
             Indexes.GENRES.value: Index_reader(path, Indexes.GENRES, Index_types.DOCUMENT_LENGTH).index,
@@ -41,7 +46,7 @@ class SearchEngine:
         self.num_of_documents= len(self.document_indexes[Indexes.DOCUMENTS.value].keys())
         
 
-    def search(self, query, method, weights, safe_ranking,  smoothing_method, max_results=10, alpha= 0.5, lamda= 0.5):
+    def search(self,indx, query, method, weights, safe_ranking,  smoothing_method, max_results=10, alpha= 0.5, lamda= 0.5):
         """
         searches for the query in the indexes.
 
@@ -81,7 +86,7 @@ class SearchEngine:
                 query, smoothing_method, weights, scores, alpha, lamda
             )
         elif safe_ranking:
-            self.find_scores_with_safe_ranking(query, method, weights, scores)
+            self.find_scores_with_safe_ranking(indx, query, method, weights, scores)
         else:
             self.find_scores_with_unsafe_ranking(query, method, weights, max_results, scores)
 
@@ -140,6 +145,7 @@ class SearchEngine:
             The scores of the documents.
         """
         
+        
 
         for field in weights:
             
@@ -183,7 +189,7 @@ class SearchEngine:
             
             scores[field]= tier_scores[list(tier_scores.keys())[0]]
     
-    def find_scores_with_safe_ranking(self, query, method, weights, scores):
+    def find_scores_with_safe_ranking(self, indx, query, method, weights, scores):
         """
         Finds the scores of the documents using the safe ranking method.
 
@@ -198,24 +204,44 @@ class SearchEngine:
         scores : dict
             The scores of the documents.
         """
-
-        for field in weights.keys():
-            # field= None
-            # if field_s=='stars':
-            #     field= Indexes.STARS
-            # elif field_s=='genres':
-            #     field= Indexes.GENRES
-            # else:
-            #     field= Indexes.SUMMARIES
+        print(indx)
+        if indx==None:
+            for field in weights.keys():
+                # field= None
+                # if field_s=='stars':
+                #     field= Indexes.STARS
+                # elif field_s=='genres':
+                #     field= Indexes.GENRES
+                # else:
+                #     field= Indexes.SUMMARIES
+                    
+                scorer= Scorer(self.document_indexes[field], self.num_of_documents)
+                scores[field]= {}
+                if method=='OkapiBM25':
+                    scores[field]= scorer.compute_socres_with_okapi_bm25(query, float(self.metadata_index['averge_document_length'][field]), self.document_lengths_index[field]) 
+                else:
+                    scores[field]= scorer.compute_scores_with_vector_space_model(query, method) 
+        else:
+            for field in weights.keys():
+                # field= None
+                # if field_s=='stars':
+                #     field= Indexes.STARS
+                # elif field_s=='genres':
+                #     field= Indexes.GENRES
+                # else:
+                #     field= Indexes.SUMMARIES
                 
-            scorer= Scorer(self.document_indexes[field], self.num_of_documents)
-            scores[field]= {}
-            if method=='OkapiBM25':
-                scores[field]= scorer.compute_socres_with_okapi_bm25(query, float(self.metadata_index['averge_document_length'][field]), self.document_lengths_index[field]) 
-            else:
-                scores[field]= scorer.compute_scores_with_vector_space_model(query, method)    
+                # if not self.tiered_by_year_index[indx] or self.tiered_by_year_index[indx][field]:
+                #     return 
+                
+                scorer= Scorer(self.tiered_by_year_index[field][indx], self.num_of_documents)
+                scores[field]= {}
+                if method=='OkapiBM25':
+                    scores[field]= scorer.compute_socres_with_okapi_bm25(query, float(self.metadata_index['averge_document_length'][field]), self.document_lengths_index[field]) 
+                else:
+                    scores[field]= scorer.compute_scores_with_vector_space_model(query, method)    
        
-
+        
 
 
     def find_scores_with_unigram_model(self, query, smoothing_method, weights, scores, alpha, lamda):
