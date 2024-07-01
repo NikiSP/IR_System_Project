@@ -78,6 +78,38 @@ def get_summary_with_snippet(movie_info, query):
 def search_time(start, end):
     st.success("Search took: {:.6f} milli-seconds".format((end - start) * 1e3))
 
+headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
+}
+
+import requests
+from bs4 import BeautifulSoup
+
+def get_IMG(url):
+    session = requests.Session()
+    session.headers.update(headers)
+
+    try:
+        r= session.get(url)
+        if r.status_code==200:
+            soup= BeautifulSoup(r.content, "html.parser")
+            try:
+                poster_div = soup.find('div', class_='ipc-media__img')
+                if poster_div:
+                    image_tag = poster_div.find('img')
+                    if image_tag and 'src' in image_tag.attrs:
+                        image_url = image_tag['src']
+                    else:
+                        image_url= np.nan
+                else:
+                    image_url= np.nan
+            except Exception as e:
+                image_url= np.nan
+        else:
+            image_url= np.nan
+    except requests.exceptions.RequestException as e:
+        image_url= np.nan
+    return image_url
 
 def search_handling(
     search_year,
@@ -144,8 +176,8 @@ def search_handling(
                                 unsafe_allow_html=True,
                             )
             with card[1].container():
-                if info['Image_URL']:
-                    st.image(info["Image_URL"], use_column_width=True)
+                info["Image_URL"]= get_IMG(info['URL'])
+                st.image(info["Image_URL"], use_column_width=True)
 
             st.divider()
         return
@@ -234,8 +266,8 @@ def search_handling(
                                     unsafe_allow_html=True,
                                 )
                 with card[1].container():
-                    if info['Image_URL']:
-                        st.image(info["Image_URL"], use_column_width=True)
+                    info["Image_URL"]= get_IMG(info['URL'])
+                    st.image(info["Image_URL"], use_column_width=True)
 
                 st.divider()
 
