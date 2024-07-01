@@ -44,6 +44,7 @@ def correct_text(text: str, all_documents: List[str]) -> str:
 
 
 def search(
+    indx: int,
     query: str,
     max_result_count: int,
     weights: dict,
@@ -97,7 +98,7 @@ def search(
     #     "summaries": 1
     # }
     return search_engine.search(
-        query, method, weights, max_results=max_result_count, safe_ranking=ranking_type, smoothing_method=unigram_smoothing
+        indx, query, method, weights, max_results=max_result_count, safe_ranking=ranking_type, smoothing_method=unigram_smoothing
     )
 
 
